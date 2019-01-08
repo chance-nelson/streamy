@@ -11,7 +11,7 @@ function setup() {
     
     for(i = 0; i < streams.length; i++) {
         stream_id = streams[i];
-        let iframe_str = `<iframe id="${stream_id}" width="${screen_width}" height="${screen_height}" src="https://www.youtube.com/embed/${stream_id}?autoplay=1" frameborder="0" allow="autoplay; encrypted-media;" allowfullscreen></iframe>`
+        let iframe_str = `<iframe id="${stream_id}" width="${screen_width}" height="${screen_height}" src="https://www.youtube.com/embed/${stream_id}?rel=0&modestbranding=1&autohide=1&mute=1&showinfo=0&controls=0&autoplay=1" frameborder="0" allow="autoplay; encrypted-media;" allowfullscreen></iframe>`
         document.getElementById('streams').insertAdjacentHTML('beforeend', iframe_str);
         let current = document.getElementById(streams[i])
         current.style.display = 'none';
