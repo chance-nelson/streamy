@@ -15,11 +15,8 @@ const streamtypes = {
                 enablejsapi: 1
             });
             screen_obj.elem = {};
-            screen_obj.elem.play = () => screen_obj.elem2.playVideo;
-            screen_obj.elem.pause = () => screen_obj.elem2.pauseVideo;
-        },
-        onPlayerReady: (e, cb) => {
-
+            screen_obj.elem.play = () => { screen_obj.elem2.playVideo.bind(screen_obj.elem2)() };
+            screen_obj.elem.pause = () => { screen_obj.elem2.pauseVideo.bind(screen_obj.elem2)() };
         }
     },
     twitch: {
@@ -34,12 +31,17 @@ const streamtypes = {
                 autoplay: false,
                 theme: "dark"
             });
+            screen_obj.elem.addEventListener(Twitch.Embed.VIDEO_READY, function () {
+                //patch play and pause to do our bidding.
+                screen_obj.elem.play = () => { screen_obj.elem.getPlayer().play.bind(screen_obj.elem.getPlayer())() };
+                screen_obj.elem.pause = () => { screen_obj.elem.getPlayer().pause.bind(screen_obj.elem.getPlayer())() };
+            });
         },
     }
 };
 
-const streams        = [ {streamtype: streamtypes.youtube, url: 'LvfaMv9nbJc'}, {streamtype: streamtypes.twitch, url: 'necros'} ];
-const interval       = 3000; // milliseconds
+const streams        = [ {streamtype: streamtypes.youtube, url: 'LvfaMv9nbJc'}, {streamtype: streamtypes.twitch, url: 'harbleu'} ];
+const interval       = 10000; // milliseconds
 
 var current_stream = -1;
 
@@ -66,7 +68,7 @@ function nextStream() {
     }
 
     current_stream += 1;
-    if(current_stream > streams.length) {
+    if(current_stream >= streams.length) {
         current_stream = 0;
     }
 
