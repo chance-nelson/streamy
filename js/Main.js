@@ -1,67 +1,85 @@
-// For youtube add yt: infront of id, for twitch add tw: infront of channel
-const streams        = [ 'yt:LvfaMv9nbJc', 'tw:gamesdonequick'];
-const interval       = 3000; // milliseconds
 
-current_stream = 0;
+const streamtypes = {
+    youtube: {
+        makeElement: (id, screen_width, screen_height, screen_obj) => {
+            document.getElementById('streams').insertAdjacentHTML('beforeend', `<div id=${id}></div>`);
+            screen_obj.elem2 = new YT.Player(id, {
+                width: screen_width,
+                height: screen_height,
+                videoId: id,
+                modestbranding: 1,
+                autohide: 1,
+                showinfo: 1,
+                controls: 0,
+                autoplay: 0,
+                enablejsapi: 1
+            });
+            screen_obj.elem = {};
+            screen_obj.elem.play = () => { screen_obj.elem2.playVideo.bind(screen_obj.elem2)() };
+            screen_obj.elem.pause = () => { screen_obj.elem2.pauseVideo.bind(screen_obj.elem2)() };
+        }
+    },
+    twitch: {
+        makeElement: (id, screen_width, screen_height, screen_obj) => {
+            screen_obj.elem = {};
+            document.getElementById('streams').insertAdjacentHTML('beforeend', `<div id=${id}></div>`);
+            screen_obj.elem = new Twitch.Embed(id, {
+                width: screen_width,
+                height: screen_height,
+                channel: id,
+                layout: "video",
+                autoplay: false,
+                theme: "dark"
+            });
+            screen_obj.elem.addEventListener(Twitch.Embed.VIDEO_READY, function () {
+                //patch play and pause to do our bidding.
+                screen_obj.elem.play = () => { screen_obj.elem.getPlayer().play.bind(screen_obj.elem.getPlayer())() };
+                screen_obj.elem.pause = () => { screen_obj.elem.getPlayer().pause.bind(screen_obj.elem.getPlayer())() };
+            });
+        },
+    }
+};
+
+const streams        = [ {streamtype: streamtypes.youtube, url: 'LvfaMv9nbJc'}, {streamtype: streamtypes.twitch, url: 'harbleu'} ];
+const interval       = 10000; // milliseconds
+
+var current_stream = -1;
 
 
 function setup() {
     let screen_width  = window.screen.width;
     let screen_height = window.screen.height;
-    let stream_id     = null;
-    
-    for(i = 0; i < streams.length; i++) {
-        stream_info = streams[i].split(":");
-        stream_type = stream_info[0];
-        stream_id   = stream_info[1];
-        
-        switch(stream_type) {
-            case "yt":
-                iframe_str = `<iframe id="${streams[i]}" width="${screen_width}" height="${screen_height}" src="https://www.youtube.com/embed/${stream_id}?rel=0&modestbranding=1&autohide=1&mute=1&showinfo=0&controls=0&autoplay=1" frameborder="0" allowfullscreen></iframe>`;
-                break;
-                
-            case "tw":
-                iframe_str = `<iframe id="${streams[i]}" src="https://player.twitch.tv/?channel=${stream_id}" frameborder="0" allowfullscreen="true" scrolling="no" height="${screen_height}" width="${screen_width}" ></iframe>`;
-                break;
-                
-            default:
-                continue;
-        }
-        
-        document.getElementById('streams').insertAdjacentHTML('beforeend', iframe_str);
-        let current = document.getElementById(streams[i])
-        current.style.display = 'none';
+    for(var stream of streams) {
+        stream.streamtype.makeElement(stream.url, screen_width, screen_height, stream);
+        document.getElementById(stream.url).style.display = 'none';
     }
 }
 
 
 function nextStream() {
     let current_stream_id = streams[current_stream];
-
-    if (streams[current_stream].includes(':')){
-      // Hide the current stream
-      let hide_element = document.getElementById(current_stream_id);
-      hide_element.style.display = 'none';
+    if(current_stream !== -1) {
+        current_stream_id = current_stream_id.url;
+        let hide_element = document.getElementById(current_stream_id);
+        streams[current_stream].elem.pause();
+        if (hide_element) {
+            hide_element.style.display = 'none';
+        }
     }
-    
+
     current_stream += 1;
     if(current_stream >= streams.length) {
         current_stream = 0;
     }
-    
-    while (!(streams[current_stream].includes(':'))){
-        current_stream += 1;
-        if(current_stream >= streams.length) {
-            current_stream = 0;
-        }
-    }
-    
+
     // Show the current stream
-    current_stream_id = streams[current_stream];
+    current_stream_id = streams[current_stream].url;
     let show_element = document.getElementById(current_stream_id);
+    streams[current_stream].elem.play();
     show_element.style.display = 'block';
 }
 
-
-setup();
-setInterval(nextStream, interval);
+function onYouTubeIframeAPIReady() {
+    setup();
+    setInterval(nextStream, interval);
+}
