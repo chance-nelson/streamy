@@ -1,4 +1,3 @@
-
 const streamtypes = {
     youtube: {
         makeElement: (id, screen_width, screen_height, screen_obj) => {
@@ -7,11 +6,13 @@ const streamtypes = {
                 width: screen_width,
                 height: screen_height,
                 videoId: id,
-                modestbranding: 1,
-                autohide: 1,
-                showinfo: 1,
-                controls: 0,
-                autoplay: 0,
+                playerVars: {
+                    modestbranding: 1,
+                    autohide: 1,
+                    showinfo: 1,
+                    controls: 0,
+                    autoplay: 1,
+                },
                 enablejsapi: 1
             });
             screen_obj.elem = {};
@@ -40,8 +41,8 @@ const streamtypes = {
     }
 };
 
-const streams        = [ {streamtype: streamtypes.youtube, url: 'LvfaMv9nbJc'}, {streamtype: streamtypes.twitch, url: 'harbleu'} ];
-const interval       = 10000; // milliseconds
+const streams        = [{streamtype: streamtypes.youtube, url:'LvfaMv9nbJc'}, {streamtype: streamtypes.youtube, url:'ACRhupCd3Jg'}, {streamtype: streamtypes.youtube, url:'hZtC9oQoHfY'}, {streamtype: streamtypes.youtube, url:'aGxLUyiKF5M'}, {streamtype: streamtypes.youtube, url:'JUCekz5k9E4'}, {streamtype: streamtypes.youtube, url:'TY3o_sv0B7Y'},{streamtype: streamtypes.youtube, url:'4993sBLAzGA'}];
+const interval       = 300000; // milliseconds
 
 var current_stream = -1;
 
@@ -75,11 +76,12 @@ function nextStream() {
     // Show the current stream
     current_stream_id = streams[current_stream].url;
     let show_element = document.getElementById(current_stream_id);
-    streams[current_stream].elem.play();
     show_element.style.display = 'block';
+    streams[current_stream].elem.play();
 }
 
 function onYouTubeIframeAPIReady() {
     setup();
     setInterval(nextStream, interval);
+    setTimeout(nextStream, 10000);
 }
